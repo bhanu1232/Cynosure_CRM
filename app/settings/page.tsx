@@ -327,7 +327,7 @@ export default function Settings() {
                                         </h3>
                                         <div className="mt-2">
                                             <p className="text-sm text-gray-500">
-                                                Are you sure you want to delete the event "{selectedEvent.name}"? This action cannot be undone.
+                                                Are you sure you want to delete the event &quot;{selectedEvent.name}&quot;? This action cannot be undone.
                                             </p>
                                         </div>
                                     </div>

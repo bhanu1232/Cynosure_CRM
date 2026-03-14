@@ -56,10 +56,10 @@ function IssuePassContent() {
 
             setAllRegistrations(data);
             setRegistrations(data);
-            
+
             // Keep input values empty by default as requested
             setInputValues({});
-            
+
         } catch (error) {
             console.error('Error fetching registrations:', error);
             toast.error('Failed to load registrations');
@@ -80,7 +80,7 @@ function IssuePassContent() {
 
     const handleIssuePass = async (registration: Registration) => {
         const numericId = inputValues[registration.id];
-        
+
         if (!numericId || numericId.trim() === '') {
             toast.warning('Please enter a numeric ID first');
             return;
@@ -97,11 +97,11 @@ function IssuePassContent() {
             });
 
             // Update local state
-            const updatedAll = allRegistrations.map(reg => 
+            const updatedAll = allRegistrations.map(reg =>
                 reg.id === registration.id ? { ...reg, uid: newUid, passIssued: true } : reg
             );
             setAllRegistrations(updatedAll);
-            
+
             toast.success(`Pass issued successfully! UID updated to ${newUid}`);
         } catch (error) {
             console.error('Error updating UID:', error);
@@ -128,7 +128,7 @@ function IssuePassContent() {
                 <div className="sm:flex-auto">
                     <h1 className="text-2xl font-semibold text-gray-900">Issue Passes</h1>
                     <p className="mt-2 text-sm text-gray-700">
-                        Manage and assign official 'CS' UIDs to verified participants.
+                        Manage and assign official &apos;CS&apos; UIDs to verified participants.
                     </p>
                 </div>
             </div>
@@ -204,11 +204,10 @@ function IssuePassContent() {
                                                     <div className="text-gray-400">{registration.mobile}</div>
                                                 </td>
                                                 <td className="whitespace-nowrap px-3 py-4 text-sm">
-                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                                        registration.uid?.startsWith('CS') 
-                                                            ? 'bg-green-100 text-green-800' 
+                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${registration.uid?.startsWith('CS')
+                                                            ? 'bg-green-100 text-green-800'
                                                             : 'bg-yellow-100 text-yellow-800'
-                                                    }`}>
+                                                        }`}>
                                                         {registration.uid || 'None'}
                                                     </span>
                                                 </td>
@@ -235,9 +234,8 @@ function IssuePassContent() {
                                                         <button
                                                             onClick={() => handleIssuePass(registration)}
                                                             disabled={processingId === registration.id || !inputValues[registration.id]}
-                                                            className={`inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
-                                                                (!inputValues[registration.id] || processingId === registration.id) ? 'opacity-50 cursor-not-allowed' : ''
-                                                            }`}
+                                                            className={`inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${(!inputValues[registration.id] || processingId === registration.id) ? 'opacity-50 cursor-not-allowed' : ''
+                                                                }`}
                                                         >
                                                             {processingId === registration.id ? (
                                                                 <>

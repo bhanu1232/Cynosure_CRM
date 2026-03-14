@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { doc, getDoc, collection, query, where, getDocs, updateDoc, arrayUnion } from 'firebase/firestore';
 import { db } from '../../firebase/config';
@@ -249,13 +250,13 @@ export default function EventDetails() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center py-12">
                     <h2 className="text-2xl font-semibold text-gray-900 mb-2">Event Not Found</h2>
-                    <p className="text-gray-500 mb-6">The event you're looking for doesn't exist or has been removed.</p>
-                    <a
+                    <p className="text-gray-500 mb-6">The event you&apos;re looking for doesn&apos;t exist or has been removed.</p>
+                    <Link
                         href="/events"
                         className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
                         Back to Events
-                    </a>
+                    </Link>
                 </div>
             </div>
         );
@@ -266,12 +267,12 @@ export default function EventDetails() {
             <div className="mb-8">
                 <div className="flex items-center justify-between">
                     <h1 className="text-3xl font-bold text-gray-900">{event.name}</h1>
-                    <a
+                    <Link
                         href="/events"
                         className="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
                         ← Back to Events
-                    </a>
+                    </Link>
                 </div>
                 <p className="mt-2 text-gray-600">{event.description}</p>
             </div>
