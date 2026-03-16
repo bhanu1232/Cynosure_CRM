@@ -15,6 +15,8 @@ const navigation = [
     { name: 'Verification', href: '/registrations', icon: Cog6ToothIcon },
     { name: 'Success Registrations', href: '/success-registrations', icon: IdentificationIcon },
     { name: 'Issue Pass', href: '/issue-pass', icon: IdentificationIcon },
+    { name: 'Hackathon Verification', href: '/hackathon-registrations', icon: Cog6ToothIcon },
+    { name: 'Hackathon Issue Pass', href: '/hackathon-issue-pass', icon: IdentificationIcon },
     { name: 'Failed Registrations', href: '/failed-registrations', icon: IdentificationIcon },
     { name: 'Spot Registration', href: '/add-participantbhanu123', icon: UserPlusIcon },
     { name: 'Events', href: '/events', icon: CalendarIcon },
