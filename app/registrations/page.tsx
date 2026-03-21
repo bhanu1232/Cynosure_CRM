@@ -76,7 +76,7 @@ function RegistrationsContent() {
 
                     isRejected: !isVerified,
                     whatsappLink: isVerified
-                        ? 'https://chat.whatsapp.com/LPZ2D9fqcIEHWNg6LOUJVp'  // Announcements group for verified
+                        ? 'https://chat.whatsapp.com/Cu9Vk2IP0Nr3DSZ2rKwZX2?mode=gi_t'  // Announcements group for verified
                         : 'https://chat.whatsapp.com/KxGOfKz0QddLdDE3oD4fuL',  // Queries group for rejected
                     whatsappGroupName: isVerified ? 'BMS Announcements' : 'BMS Queries'
                 };
