@@ -6,143 +6,146 @@ import { db } from '../firebase/config';
 import { toast } from 'react-toastify';
 import ProtectedRoute from '../components/ProtectedRoute';
 
-interface Registration {
+interface Accommodation {
     id: string;
     name: string;
-    email: string;
+    email?: string;
     mobile: string;
+    gender: string;
+    packageId: string;
+    packageLabel: string;
     paymentId: string;
-    totalAmount: number;
-    date: string;
-
-    uid: string;
-    collegeName?: string;
+    price: number;
+    timestamp: string;
+    uid?: string;
 }
 
-function RegistrationsContent() {
-    const [registrations, setRegistrations] = useState<Registration[]>([]);
+function AccommodationsContent() {
+    const [accommodations, setAccommodations] = useState<Accommodation[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [processingActions, setProcessingActions] = useState<{ [key: string]: 'verify' | 'reject' | null }>({});
     const [searchQuery, setSearchQuery] = useState('');
-    const [allRegistrations, setAllRegistrations] = useState<Registration[]>([]);
+    const [allAccommodations, setAllAccommodations] = useState<Accommodation[]>([]);
 
     useEffect(() => {
-        fetchRegistrations();
+        fetchAccommodations();
     }, []);
 
     useEffect(() => {
-        // Filter registrations based on search query
+        // Filter accommodations based on search query
         if (searchQuery.trim()) {
-            const filtered = allRegistrations.filter(registration =>
-                registration.paymentId.toLowerCase().includes(searchQuery.toLowerCase())
+            const filtered = allAccommodations.filter(acc =>
+                acc.paymentId?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                acc.name?.toLowerCase().includes(searchQuery.toLowerCase())
             );
-            setRegistrations(filtered);
+            setAccommodations(filtered);
         } else {
-            setRegistrations(allRegistrations);
+            setAccommodations(allAccommodations);
         }
-    }, [searchQuery, allRegistrations]);
+    }, [searchQuery, allAccommodations]);
 
-    const fetchRegistrations = async () => {
+    const fetchAccommodations = async () => {
         setLoading(true);
         try {
-            const registrationsSnapshot = await getDocs(collection(db, 'registrations'));
-            const registrationsData = registrationsSnapshot.docs.map(doc => ({
+            const snapshot = await getDocs(collection(db, 'accommodations'));
+            const data = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
-            })) as Registration[];
-            setAllRegistrations(registrationsData);
-            setRegistrations(registrationsData);
+            })) as Accommodation[];
+            setAllAccommodations(data);
+            setAccommodations(data);
         } catch (error) {
-            console.error('Error fetching registrations:', error);
-            toast.error('Error loading registrations');
+            console.error('Error fetching accommodations:', error);
+            toast.error('Error loading accommodations');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleVerification = async (registration: Registration, isVerified: boolean) => {
+    const handleVerification = async (accommodation: Accommodation, isVerified: boolean) => {
         const action = isVerified ? 'verify' : 'reject';
-        setProcessingActions(prev => ({ ...prev, [registration.id]: action }));
+        setProcessingActions(prev => ({ ...prev, [accommodation.id]: action }));
 
         try {
-            // Try to send email first (for both verification and rejection)
-            try {
-                console.log(`Attempting to send ${isVerified ? 'verification' : 'rejection'} email to:`, registration.email);
-                const emailData = {
-                    to: registration.email,
-                    name: registration.name,
-                    uid: registration.uid,
+            // Try to send email first
+            if (accommodation.email) {
+                try {
+                    console.log(`Attempting to send ${isVerified ? 'verification' : 'rejection'} email to:`, accommodation.email);
+                    const emailData = {
+                        to: accommodation.email,
+                        name: accommodation.name,
+                        uid: accommodation.uid || '',
+                        isRejected: !isVerified,
+                        submissionType: 'Accommodation',
+                        whatsappLink: isVerified
+                            ? 'https://chat.whatsapp.com/E2RU5DxY04O4WFZynZITIQ?mode=gi_t'  // Announcements group
+                            : 'https://chat.whatsapp.com/KxGOfKz0QddLdDE3oD4fuL',  // Queries group
+                        whatsappGroupName: isVerified ? 'Cynosure Announcements' : 'BMS Queries'
+                    };
 
-                    isRejected: !isVerified,
-                    whatsappLink: isVerified
-                        ? 'https://chat.whatsapp.com/E2RU5DxY04O4WFZynZITIQ?mode=gi_t'  // Announcements group for verified
-                        : 'https://chat.whatsapp.com/KxGOfKz0QddLdDE3oD4fuL',  // Queries group for rejected
-                    whatsappGroupName: isVerified ? 'Cynosure Announcements' : 'BMS Queries'
-                };
-                console.log('Email data:', emailData);
+                    const response = await fetch('/api/send-verification', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(emailData),
+                    });
 
-                const response = await fetch('/api/send-verification', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(emailData),
-                });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        console.error('Failed to send email:', errorData);
+                        toast.error(`Failed to send ${isVerified ? 'verification' : 'rejection'} email. Please try again.`);
+                        return;
+                    }
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error('Failed to send email:', errorData);
+                    const responseData = await response.json();
+                    console.log('Email sent successfully:', responseData);
+                } catch (emailError: any) {
+                    console.error('Error sending email:', emailError);
                     toast.error(`Failed to send ${isVerified ? 'verification' : 'rejection'} email. Please try again.`);
                     return;
                 }
-
-                const responseData = await response.json();
-                console.log('Email sent successfully:', responseData);
-            } catch (emailError: any) {
-                console.error('Error sending email:', emailError);
-                toast.error(`Failed to send ${isVerified ? 'verification' : 'rejection'} email. Please try again.`);
-                return;
             }
 
-            // Proceed with verification/rejection only if email was sent successfully
-            const targetCollection = isVerified ? 'successRegistrations' : 'failedRegistrations';
-            const newDoc = await addDoc(collection(db, targetCollection), {
-                ...registration,
+            const targetCollection = isVerified ? 'successAccommodations' : 'failedAccommodations';
+            await addDoc(collection(db, targetCollection), {
+                ...accommodation,
                 verifiedAt: new Date().toISOString(),
                 status: isVerified ? 'verified' : 'rejected',
-                date: new Date().toISOString()
+                processedDate: new Date().toISOString()
             });
 
-            // Remove from registrations collection
-            await deleteDoc(doc(db, 'registrations', registration.id));
+            // Remove from accommodations collection
+            await deleteDoc(doc(db, 'accommodations', accommodation.id));
 
             // Update local state
-            const updatedRegistrations = allRegistrations.filter(reg => reg.id !== registration.id);
-            setAllRegistrations(updatedRegistrations);
-            setRegistrations(updatedRegistrations.filter(reg =>
-                reg.paymentId.toLowerCase().includes(searchQuery.toLowerCase())
+            const updatedAll = allAccommodations.filter(acc => acc.id !== accommodation.id);
+            setAllAccommodations(updatedAll);
+            setAccommodations(updatedAll.filter(acc =>
+                acc.paymentId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                acc.name?.toLowerCase().includes(searchQuery.toLowerCase())
             ));
 
-            toast.success(`Registration ${isVerified ? 'verified' : 'rejected'} and email sent successfully`);
+            toast.success(`Accommodation ${isVerified ? 'verified' : 'rejected'} successfully`);
         } catch (error) {
-            console.error('Error processing registration:', error);
-            toast.error('Error processing registration');
+            console.error('Error processing accommodation:', error);
+            toast.error('Error processing accommodation');
         } finally {
-            setProcessingActions(prev => ({ ...prev, [registration.id]: null }));
+            setProcessingActions(prev => ({ ...prev, [accommodation.id]: null }));
         }
     };
 
-    const formatDate = (timestamp: any) => {
-        if (!timestamp) return 'N/A';
+    const formatDate = (timestampValue: any) => {
+        if (!timestampValue) return 'N/A';
         // Handle both Firestore Timestamp and string dates
-        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-        return date.toLocaleDateString();
+        const date = timestampValue.toDate ? timestampValue.toDate() : new Date(timestampValue);
+        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
     };
 
     const handleRefresh = async () => {
         setRefreshing(true);
-        await fetchRegistrations();
+        await fetchAccommodations();
         setRefreshing(false);
         toast.success('Records refreshed successfully');
     };
@@ -152,7 +155,7 @@ function RegistrationsContent() {
             <div className="flex justify-center items-center min-h-[600px]">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-500">Loading registrations...</p>
+                    <p className="text-gray-500">Loading accommodations...</p>
                 </div>
             </div>
         );
@@ -162,9 +165,9 @@ function RegistrationsContent() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="sm:flex sm:items-center mb-6">
                 <div className="sm:flex-auto">
-                    <h1 className="text-2xl font-semibold text-gray-900">Registrations</h1>
+                    <h1 className="text-2xl font-semibold text-gray-900">Accommodations</h1>
                     <p className="mt-2 text-sm text-gray-700">
-                        A list of all registrations and their verification status.
+                        A list of all accommodation requests and their verification status.
                     </p>
                 </div>
                 <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
@@ -196,15 +199,15 @@ function RegistrationsContent() {
             <div className="mb-6">
                 <div className="max-w-xl">
                     <label htmlFor="search" className="block text-sm font-medium text-gray-700">
-                        Search Registrations
+                        Search Accommodations
                     </label>
                     <div className="mt-1 relative rounded-md shadow-sm">
                         <input
                             type="text"
                             name="search"
                             id="search"
-                            className="block w-full rounded-md border-gray-300 pr-10 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                            placeholder="Search by payment ID"
+                            className="block w-full rounded-md border-gray-300 pr-10 focus:border-blue-500 focus:ring-blue-500 sm:text-sm text-gray-900"
+                            placeholder="Search by name or payment ID"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -231,18 +234,20 @@ function RegistrationsContent() {
                                             Email
                                         </th>
                                         <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                            Gender
+                                        </th>
+                                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                                             Mobile
+                                        </th>
+                                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                            Package
                                         </th>
                                         <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                                             Payment ID
                                         </th>
                                         <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                            College Name
-                                        </th>
-                                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                                             Amount
                                         </th>
-
                                         <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                                             Date
                                         </th>
@@ -252,56 +257,58 @@ function RegistrationsContent() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200 bg-white">
-                                    {registrations.length === 0 ? (
+                                    {accommodations.length === 0 ? (
                                         <tr>
-                                            <td colSpan={9} className="py-8 text-center text-sm text-gray-500">
-                                                No registrations found
+                                            <td colSpan={8} className="py-8 text-center text-sm text-gray-500">
+                                                No accommodations found
                                             </td>
                                         </tr>
                                     ) : (
-                                        registrations.map((registration) => (
-                                            <tr key={registration.id}>
+                                        accommodations.map((acc) => (
+                                            <tr key={acc.id}>
                                                 <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                                                    {registration.name}
+                                                    {acc.name}
                                                 </td>
                                                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                    {registration.email}
+                                                    {acc.email || 'N/A'}
                                                 </td>
                                                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                    {registration.mobile}
+                                                    {acc.gender}
                                                 </td>
                                                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                    {registration.paymentId}
+                                                    {acc.mobile}
                                                 </td>
                                                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                    {registration.collegeName || 'N/A'}
+                                                    {acc.packageLabel || acc.packageId}
                                                 </td>
                                                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                    ₹{registration.totalAmount}
+                                                    {acc.paymentId}
                                                 </td>
-
                                                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                    {formatDate(registration.date)}
+                                                    ₹{acc.price}
+                                                </td>
+                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                                    {formatDate(acc.timestamp)}
                                                 </td>
                                                 <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                                                     <div className="flex space-x-2">
                                                         <button
-                                                            onClick={() => handleVerification(registration, true)}
-                                                            disabled={!!processingActions[registration.id]}
-                                                            className={`inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 ${processingActions[registration.id] ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                            onClick={() => handleVerification(acc, true)}
+                                                            disabled={!!processingActions[acc.id]}
+                                                            className={`inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 ${processingActions[acc.id] ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                         >
-                                                            {processingActions[registration.id] === 'verify' ? (
+                                                            {processingActions[acc.id] === 'verify' ? (
                                                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                                                             ) : (
                                                                 'Verify'
                                                             )}
                                                         </button>
                                                         <button
-                                                            onClick={() => handleVerification(registration, false)}
-                                                            disabled={!!processingActions[registration.id]}
-                                                            className={`inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 ${processingActions[registration.id] ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                            onClick={() => handleVerification(acc, false)}
+                                                            disabled={!!processingActions[acc.id]}
+                                                            className={`inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 ${processingActions[acc.id] ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                         >
-                                                            {processingActions[registration.id] === 'reject' ? (
+                                                            {processingActions[acc.id] === 'reject' ? (
                                                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                                                             ) : (
                                                                 'Reject'
@@ -322,10 +329,10 @@ function RegistrationsContent() {
     );
 }
 
-export default function RegistrationsPage() {
+export default function AccommodationsPage() {
     return (
         <ProtectedRoute>
-            <RegistrationsContent />
+            <AccommodationsContent />
         </ProtectedRoute>
     );
-} 
+}

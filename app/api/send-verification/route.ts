@@ -10,7 +10,8 @@ export async function POST(req: Request) {
             teamMembers, 
             isRejected, 
             whatsappLink, 
-            whatsappGroupName
+            whatsappGroupName,
+            submissionType = 'Event Registration'
         } = await req.json();
 
         console.log('Received email request for:', { 
@@ -20,7 +21,8 @@ export async function POST(req: Request) {
             teamMembers, 
             isRejected, 
             whatsappLink, 
-            whatsappGroupName
+            whatsappGroupName,
+            submissionType
         });
 
         // Create transporter with Brevo credentials
@@ -41,8 +43,6 @@ export async function POST(req: Request) {
                 pass: smtpPass
             }
         });
-
-        const submissionType = 'Event Registration';
 
         // Simple and clear subject line
         const subject = isRejected ? 

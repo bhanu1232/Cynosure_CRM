@@ -18,6 +18,8 @@ const navigation = [
     { name: 'Hackathon Verification', href: '/hackathon-registrations', icon: Cog6ToothIcon },
     { name: 'Hackathon Issue Pass', href: '/hackathon-issue-pass', icon: IdentificationIcon },
     { name: 'Failed Registrations', href: '/failed-registrations', icon: IdentificationIcon },
+    { name: 'Accommodations', href: '/accommodations', icon: HomeIcon },
+    { name: 'Success Accommodations', href: '/success-accommodations', icon: IdentificationIcon },
     { name: 'Spot Registration', href: '/add-participantbhanu123', icon: UserPlusIcon },
     { name: 'Events', href: '/events', icon: CalendarIcon },
     { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },

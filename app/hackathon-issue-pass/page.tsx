@@ -47,9 +47,9 @@ function HackathonIssuePassContent() {
             const snapshot = await getDocs(collection(db, 'successSeparateRegistrations'));
             const data = snapshot.docs.map(doc => ({
                 id: doc.id,
-                name: doc.data().name,
-                email: doc.data().email,
-                mobile: doc.data().mobile,
+                name: doc.data().leaderName || doc.data().name || 'Unknown Participant',
+                email: doc.data().leaderEmail || doc.data().email || '',
+                mobile: doc.data().leaderPhone || doc.data().phone || doc.data().mobile || '',
                 uid: doc.data().uid,
                 passIssued: doc.data().passIssued
             })) as Registration[];
@@ -170,10 +170,10 @@ function HackathonIssuePassContent() {
                                 <thead className="bg-gray-50">
                                     <tr>
                                         <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
-                                            Participant
+                                            Leader Name
                                         </th>
                                         <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                            Contact
+                                            Leader Phone
                                         </th>
                                         <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                                             Current UID
