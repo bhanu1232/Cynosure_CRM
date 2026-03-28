@@ -13,6 +13,9 @@ interface Registration {
     mobile: string;
     uid?: string;
     passIssued?: boolean;
+    eventId?: string;
+    event?: string;
+    collegeName?: string;
 }
 
 function HackathonIssuePassContent() {
@@ -33,7 +36,9 @@ function HackathonIssuePassContent() {
             const filtered = allRegistrations.filter(registration =>
                 registration.name.toLowerCase().includes(query) ||
                 registration.email.toLowerCase().includes(query) ||
-                registration.mobile.includes(query)
+                registration.mobile.includes(query) ||
+                (registration.collegeName && registration.collegeName.toLowerCase().includes(query)) ||
+                (registration.event && registration.event.toLowerCase().includes(query))
             );
             setRegistrations(filtered);
         } else {
@@ -51,7 +56,10 @@ function HackathonIssuePassContent() {
                 email: doc.data().leaderEmail || doc.data().email || '',
                 mobile: doc.data().leaderPhone || doc.data().phone || doc.data().mobile || '',
                 uid: doc.data().uid,
-                passIssued: doc.data().passIssued
+                passIssued: doc.data().passIssued,
+                eventId: doc.data().eventId,
+                event: doc.data().event,
+                collegeName: doc.data().collegeName
             })) as Registration[];
 
             setAllRegistrations(data);
@@ -78,6 +86,14 @@ function HackathonIssuePassContent() {
         }
     };
 
+    const getPrefix = (eventId?: string) => {
+        if (!eventId) return 'HACK';
+        const lower = eventId.toLowerCase();
+        if (lower.includes('paper')) return 'PAPER';
+        if (lower.includes('idea')) return 'IDEA';
+        return 'HACK';
+    };
+
     const handleIssuePass = async (registration: Registration) => {
         const numericId = inputValues[registration.id];
 
@@ -86,7 +102,8 @@ function HackathonIssuePassContent() {
             return;
         }
 
-        const newUid = `HACK${numericId}`;
+        const prefix = getPrefix(registration.eventId);
+        const newUid = `${prefix}${numericId}`;
         setProcessingId(registration.id);
 
         try {
@@ -170,10 +187,16 @@ function HackathonIssuePassContent() {
                                 <thead className="bg-gray-50">
                                     <tr>
                                         <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
+                                            Event
+                                        </th>
+                                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                                             Leader Name
                                         </th>
                                         <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                            Leader Phone
+                                            Contact Info
+                                        </th>
+                                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                            College Name
                                         </th>
                                         <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                                             Current UID
@@ -189,7 +212,7 @@ function HackathonIssuePassContent() {
                                 <tbody className="divide-y divide-gray-200 bg-white">
                                     {registrations.length === 0 ? (
                                         <tr>
-                                            <td colSpan={5} className="py-8 text-center text-sm text-gray-500">
+                                            <td colSpan={7} className="py-8 text-center text-sm text-gray-500">
                                                 No participants found matching your criteria.
                                             </td>
                                         </tr>
@@ -197,14 +220,20 @@ function HackathonIssuePassContent() {
                                         registrations.map((registration) => (
                                             <tr key={registration.id}>
                                                 <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
+                                                    <div className="font-medium text-gray-900">{registration.event || 'Hackathon'}</div>
+                                                </td>
+                                                <td className="whitespace-nowrap px-3 py-4 text-sm">
                                                     <div className="font-medium text-gray-900">{registration.name}</div>
                                                 </td>
                                                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                                                     <div>{registration.email}</div>
                                                     <div className="text-gray-400">{registration.mobile}</div>
                                                 </td>
+                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                                                    {registration.collegeName || 'N/A'}
+                                                </td>
                                                 <td className="whitespace-nowrap px-3 py-4 text-sm">
-                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${registration.uid?.startsWith('HACK')
+                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${registration.uid
                                                             ? 'bg-green-100 text-green-800'
                                                             : 'bg-yellow-100 text-yellow-800'
                                                         }`}>
@@ -218,7 +247,7 @@ function HackathonIssuePassContent() {
                                                         </span>
                                                     ) : (
                                                         <div className="flex items-center space-x-2">
-                                                            <span className="text-gray-500 font-medium">HACK</span>
+                                                            <span className="text-gray-500 font-medium">{getPrefix(registration.eventId)}</span>
                                                             <input
                                                                 type="text"
                                                                 value={inputValues[registration.id] || ''}
