@@ -75,10 +75,8 @@ function RegistrationsContent() {
                     uid: registration.uid,
 
                     isRejected: !isVerified,
-                    whatsappLink: isVerified
-                        ? 'https://chat.whatsapp.com/E2RU5DxY04O4WFZynZITIQ?mode=gi_t'  // Announcements group for verified
-                        : 'https://chat.whatsapp.com/KxGOfKz0QddLdDE3oD4fuL',  // Queries group for rejected
-                    whatsappGroupName: isVerified ? 'Cynosure Announcements' : 'BMS Queries'
+                    whatsappLink: 'https://chat.whatsapp.com/E2RU5DxY04O4WFZynZITIQ?mode=gi_t',
+                    whatsappGroupName: 'Cynosure Announcements'
                 };
                 console.log('Email data:', emailData);
 

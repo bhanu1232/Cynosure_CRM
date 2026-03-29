@@ -84,12 +84,10 @@ function HackathonRegistrationsContent() {
                     to: recipientEmail,
                     name: recipientName,
                     uid: registration.uid,
-
+                    submissionType: registration.event || 'Special Event Registration',
                     isRejected: !isVerified,
-                    whatsappLink: isVerified
-                        ? 'https://chat.whatsapp.com/LPZ2D9fqcIEHWNg6LOUJVp'  // Note: you can update this link for Hackathon if needed
-                        : 'https://chat.whatsapp.com/KxGOfKz0QddLdDE3oD4fuL',
-                    whatsappGroupName: isVerified ? 'Hackathon Announcements' : 'Hackathon Queries'
+                    whatsappLink: 'https://chat.whatsapp.com/E2RU5DxY04O4WFZynZITIQ?mode=gi_t',
+                    whatsappGroupName: 'Cynosure Announcements'
                 };
                 console.log('Email data:', emailData);
 
