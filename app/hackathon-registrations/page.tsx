@@ -83,7 +83,7 @@ function HackathonRegistrationsContent() {
                 const emailData = {
                     to: recipientEmail,
                     name: recipientName,
-                    uid: registration.uid,
+                    uid: registration.paymentId || registration.id,
                     submissionType: registration.event || 'Special Event Registration',
                     isRejected: !isVerified,
                     whatsappLink: 'https://chat.whatsapp.com/E2RU5DxY04O4WFZynZITIQ?mode=gi_t',
