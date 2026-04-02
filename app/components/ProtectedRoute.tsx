@@ -1,35 +1,41 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 // Hardcoded passkey for portal access
 const ADMIN_PASSKEY = "CYNO_ADMIN_789456123";
 
+// These routes bypass admin auth entirely — they have their own access control
+const PUBLIC_ROUTES = ['/live'];
+
 export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
+    const pathname = usePathname();
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [loading, setLoading] = useState(true);
     const [passkeyInput, setPasskeyInput] = useState('');
     const [error, setError] = useState('');
 
+    const isPublicRoute = PUBLIC_ROUTES.some(r => pathname?.startsWith(r));
+
     useEffect(() => {
-        // Check if passkey is saved in local storage
+        // Skip localStorage check entirely for public routes
+        if (isPublicRoute) {
+            setLoading(false);
+            return;
+        }
+        // Check if admin passkey is saved in local storage
         const savedPasskey = localStorage.getItem('admin_passkey');
         if (savedPasskey === ADMIN_PASSKEY) {
             setIsAuthenticated(true);
         }
         setLoading(false);
-    }, []);
+    }, [isPublicRoute]);
 
-    const handleLogin = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (passkeyInput === ADMIN_PASSKEY) {
-            localStorage.setItem('admin_passkey', ADMIN_PASSKEY);
-            setIsAuthenticated(true);
-            setError('');
-        } else {
-            setError('Invalid passkey. Access denied.');
-        }
-    };
+    // Public routes: pass through immediately — no auth screen ever shown
+    if (isPublicRoute) {
+        return <>{children}</>;
+    }
 
     if (loading) {
         return (
@@ -58,7 +64,16 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
                         </p>
                     </div>
 
-                    <form onSubmit={handleLogin} className="space-y-4">
+                    <form onSubmit={(e) => {
+                        e.preventDefault();
+                        if (passkeyInput === ADMIN_PASSKEY) {
+                            localStorage.setItem('admin_passkey', ADMIN_PASSKEY);
+                            setIsAuthenticated(true);
+                            setError('');
+                        } else {
+                            setError('Invalid passkey. Access denied.');
+                        }
+                    }} className="space-y-4">
                         <div>
                             <input
                                 type="password"
@@ -69,7 +84,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
                                 required
                             />
                         </div>
-                        
+
                         {error && (
                             <div className="p-3 bg-red-50 text-red-700 rounded-md text-sm">
                                 {error}
