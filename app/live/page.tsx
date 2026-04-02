@@ -304,7 +304,6 @@ function LiveBoard() {
                 {/* ── Stats ── */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: 14, marginBottom: 28 }}>
                     {[
-                        { label: 'Total Verified', value: records.length, emoji: '🎟️', color: '#6366f1' },
                         { label: 'Hackathon / Events', value: hackathonRecords.length, emoji: '💻', color: '#8b5cf6' },
                         { label: 'General', value: generalRecords.length, emoji: '🎫', color: '#a78bfa' },
                     ].map(s => (
