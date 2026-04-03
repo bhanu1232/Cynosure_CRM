@@ -68,44 +68,6 @@ function AccommodationsContent() {
         setProcessingActions(prev => ({ ...prev, [accommodation.id]: action }));
 
         try {
-            // Try to send email first
-            if (accommodation.email) {
-                try {
-                    console.log(`Attempting to send ${isVerified ? 'verification' : 'rejection'} email to:`, accommodation.email);
-                    const emailData = {
-                        to: accommodation.email,
-                        name: accommodation.name,
-                        uid: accommodation.uid || '',
-                        isRejected: !isVerified,
-                        submissionType: 'Accommodation',
-                        whatsappLink: 'https://chat.whatsapp.com/E2RU5DxY04O4WFZynZITIQ?mode=gi_t',
-                        whatsappGroupName: 'Cynosure Announcements'
-                    };
-
-                    const response = await fetch('/api/send-verification', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(emailData),
-                    });
-
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        console.error('Failed to send email:', errorData);
-                        toast.error(`Failed to send ${isVerified ? 'verification' : 'rejection'} email. Please try again.`);
-                        return;
-                    }
-
-                    const responseData = await response.json();
-                    console.log('Email sent successfully:', responseData);
-                } catch (emailError: any) {
-                    console.error('Error sending email:', emailError);
-                    toast.error(`Failed to send ${isVerified ? 'verification' : 'rejection'} email. Please try again.`);
-                    return;
-                }
-            }
-
             const targetCollection = isVerified ? 'successAccommodations' : 'failedAccommodations';
             await addDoc(collection(db, targetCollection), {
                 ...accommodation,
