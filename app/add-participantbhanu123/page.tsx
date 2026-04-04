@@ -20,7 +20,7 @@ export default function AddParticipant() {
         email: '',
         mobile: '',
         paymentId: '',
-        totalAmount: 350,
+        totalAmount: 500,
         collegeName: '',
     });
     const [loading, setLoading] = useState(false);
@@ -52,10 +52,10 @@ export default function AddParticipant() {
                 throw new Error('Mobile number must be exactly 10 digits');
             }
 
-            // Check if mobile number already exists in successRegistrations
-            const successRegistrationsRef = collection(db, 'successRegistrations');
+            // Check if mobile number already exists in registrations
+            const registrationsRef = collection(db, 'registrations');
             const mobileQuery = query(
-                successRegistrationsRef,
+                registrationsRef,
                 where('mobile', '==', formData.mobile)
             );
             const mobileSnapshot = await getDocs(mobileQuery);
@@ -67,14 +67,17 @@ export default function AddParticipant() {
             // Generate UID
             const uid = `CS${formData.mobile}`;
 
-            // Add participant to successRegistrations collection
-            await addDoc(successRegistrationsRef, {
+            // Add participant to registrations collection (for verification queue)
+            await addDoc(registrationsRef, {
                 name: formData.name.toLowerCase(),
                 email: formData.email.toLowerCase(),
                 mobile: formData.mobile,
                 paymentId: formData.paymentId,
-                verifiedAt: new Date().toISOString(),
-                collegeName: formData.collegeName
+                totalAmount: formData.totalAmount,
+                collegeName: formData.collegeName,
+                date: new Date().toISOString(),
+                createdAt: new Date().toISOString(),
+                spotRegistration: true,
             });
 
             // Reset form and show success message
@@ -83,7 +86,7 @@ export default function AddParticipant() {
                 email: '',
                 mobile: '',
                 paymentId: '',
-                totalAmount: 350,
+                totalAmount: 500,
                 collegeName: '',
             });
             setSuccess(true);
