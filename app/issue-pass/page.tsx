@@ -13,6 +13,7 @@ interface Registration {
     mobile: string;
     uid?: string;
     passIssued?: boolean;
+    totalAmount?: number | string;
 }
 
 function IssuePassContent() {
@@ -51,7 +52,8 @@ function IssuePassContent() {
                 email: doc.data().email,
                 mobile: doc.data().mobile,
                 uid: doc.data().uid,
-                passIssued: doc.data().passIssued
+                passIssued: doc.data().passIssued,
+                totalAmount: doc.data().totalamount || doc.data().totalAmount
             })) as Registration[];
 
             setAllRegistrations(data);
@@ -176,6 +178,9 @@ function IssuePassContent() {
                                             Contact
                                         </th>
                                         <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                            Total Amount
+                                        </th>
+                                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                                             Current UID
                                         </th>
                                         <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
@@ -189,7 +194,7 @@ function IssuePassContent() {
                                 <tbody className="divide-y divide-gray-200 bg-white">
                                     {registrations.length === 0 ? (
                                         <tr>
-                                            <td colSpan={5} className="py-8 text-center text-sm text-gray-500">
+                                            <td colSpan={6} className="py-8 text-center text-sm text-gray-500">
                                                 No participants found matching your criteria.
                                             </td>
                                         </tr>
@@ -202,6 +207,9 @@ function IssuePassContent() {
                                                 <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                                                     <div>{registration.email}</div>
                                                     <div className="text-gray-400">{registration.mobile}</div>
+                                                </td>
+                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900 font-medium">
+                                                    {registration.totalAmount ? `₹${registration.totalAmount}` : '-'}
                                                 </td>
                                                 <td className="whitespace-nowrap px-3 py-4 text-sm">
                                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${registration.uid?.startsWith('CS')
